@@ -19,6 +19,7 @@ function init() {
 
   ctx = can.getContext( '2d' );
 
+  iTop.src += '?' + Date.now();
   iTop.onload = function() {
     iTopData = getImageData( iTop, ctx.canvas.width, ctx.canvas.height );
     iTop.style.display = 'none';
