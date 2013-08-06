@@ -64,12 +64,26 @@ function onMouseMove( ev ) {
   // console.log( ev.clientX );
   ev.preventDefault();
   if ( iTopData ) {
-    setAlphaWhere( iTopData, function( cx, cy ) {
-      return function( x, y ) {
-        var dx = x - cx, dy = y -cy;
-        return dx*dx + dy*dy < 100;
-      }
-    }( ev.clientX, ev.clientY ), 0 );
+    setAlphaWhere(
+      iTopData,
+
+      function( cx, cy ) {
+        return function( x, y ) {
+          var dx = x - cx, dy = y -cy;
+          return dx*dx + dy*dy < 400;
+        }
+      }( ev.clientX, ev.clientY ),
+
+      0
+      // makeBlendFn1( ev.clientX, ev.clientY )
+    );
+  }
+}
+
+function makeBlendFn1( cx, cy ) {
+  return function( x, y ) {
+    var dx = x - cx, dy = y - cy, rsq = dx*dx + dy*dy;
+    return rsq / 100 * 255;
   }
 }
 
@@ -78,12 +92,17 @@ function setPixelAlpha( imgData, x, y, value ) {
   data[ ind ] = value;
 }
 
-function setAlphaWhere( imgData, filter, value ) {
+function setAlphaWhere( imgData, filter, valueFn ) {
   var data = imgData.data, w = imgData.width, h = imgData.height;
-  var i, j;
+  var i, j, value;
   for ( i = 0; i < w; ++i ) {
     for ( j = 0; j < h; ++j ) {
       if ( filter( i, j ) === true ) {
+        if ( typeof valueFn === 'function' ) {
+          value = valueFn( i, j );
+        } else {
+          value = valueFn;
+        }
         setPixelAlpha( imgData, i, j, value );
       }
     }
