@@ -9,13 +9,19 @@ init();
 animate();
 
 function init() {
+  (function() {
+    var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+      window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+    window.requestAnimationFrame = requestAnimationFrame;
+  })();
+
   setupSize();
-  iTop.style.display = 'none';
 
   ctx = can.getContext( '2d' );
 
   iTop.onload = function() {
     iTopData = getImageData( iTop, ctx.canvas.width, ctx.canvas.height );
+    iTop.style.display = 'none';
   };
 
   setupControls();
@@ -23,10 +29,10 @@ function init() {
 
 function setupControls() {
   can.addEventListener( 'mousedown', onMouseDown );
-  can.addEventListener( 'touchstart', onTouchStart );
+  document.addEventListener( 'touchstart', onTouchStart );
 
   can.addEventListener( 'mouseup', onMouseUp );
-  can.addEventListener( 'touchend', onTouchEnd );
+  document.addEventListener( 'touchend', onTouchEnd );
 
   can.addEventListener( 'dblclick', onDoubleClick );
 }
@@ -34,17 +40,20 @@ function setupControls() {
 function onMouseDown( ev ) {
   ev.preventDefault();
   can.addEventListener( 'mousemove', onMouseMove );
+
 }
 
 function onTouchStart( ev ) {
-  if ( ev.touches === 1 ) {
-    return onMouseDown( ev );
+
+  if ( ev.touches.length === 1 ) {
+    document.addEventListener( 'touchmove', onTouchMove );
   }
 }
 
 function onMouseUp( ev ) {
   ev.preventDefault();
   can.removeEventListener( 'mousemove', onMouseMove );
+  document.removeEventListener( 'touchmove', onMouseMove );
 }
 
 
@@ -56,6 +65,16 @@ function onDoubleClick( ev ) {
   ev.preventDefault();
   if ( iTopData ) {
     setAlpha( iTopData, 255 );
+  }
+}
+
+function onTouchMove( ev ) {
+  ev.preventDefault();
+
+  if ( ev.touches.length === 1 ) {
+    ev.clientX = ev.touches[0].clientX;
+    ev.clientY = ev.touches[0].clientY;
+    return onMouseMove( ev );
   }
 }
 
@@ -78,6 +97,7 @@ function onMouseMove( ev ) {
       // makeBlendFn1( ev.clientX, ev.clientY )
     );
   }
+  return false;
 }
 
 function makeBlendFn1( cx, cy ) {
